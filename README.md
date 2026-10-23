@@ -106,14 +106,7 @@ python3 daemon/reactord.py --smcfan ./smc/smcfan --macmon "$(command -v macmon)"
 | `POST /api/mode` | `{"mode": "auto" \| "curve" \| "manual" \| "scram"}` |
 | `POST /api/curve` | `{"start_c": 40–85, "full_c": start+5–95}` |
 | `POST /api/manual` | `{"pct": 0–100}` |
-| `POST /api/ack` | acknowledges all active alarms |
-
-## Design gallery
-
-The SCRAM switch went through four designs before settling on the glass cover over a missile switch.
-All of them are live at [scram-switches.vercel.app](https://scram-switches.vercel.app) and in `mockups/scram-3d.html`.
-
-![SCRAM switch gallery](docs/screenshots/switch-gallery.png)
+| `POST /api/ack` | acknowledges all active alarms |  
 
 ## Credits
 
