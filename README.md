@@ -15,8 +15,6 @@ close the window or restart the Mac.
 | --- | --- |
 | ![SCRAM cover open](docs/screenshots/scram-open.png) | ![SCRAM engaged](docs/screenshots/scram-fired.png) |
 
-Try the SCRAM switch in your browser: **[scram-switches.vercel.app](https://scram-switches.vercel.app)**
-
 ## What's on the panel
 
 - **Strip chart.** Chip temperature, both fan speeds and chip power on scrolling graph paper, with your curve's
@@ -52,7 +50,6 @@ own risk.
 | `daemon/reactord.py` | The root background service: control loop, safety interlock, JSON API, and it serves the panel on `127.0.0.1:7979`. Reads temperatures and power from [macmon](https://github.com/vladkens/macmon). |
 | `ui/` | The panel itself: plain HTML, CSS and JavaScript, plus three.js for the SCRAM switch. |
 | `app/ReactorApp.swift` | A small native window around the panel, with a title bar that matches it. Closing it only closes the window. |
-| `mockups/` | The design exploration: three earlier control-room directions and the SCRAM switch gallery. |
 
 ## Install
 
@@ -110,7 +107,7 @@ python3 daemon/reactord.py --smcfan ./smc/smcfan --macmon "$(command -v macmon)"
 
 ## Credits
 
-- [three.js](https://threejs.org) (MIT), vendored in `ui/vendor/` and `mockups/vendor/`.
+- [three.js](https://threejs.org) (MIT), vendored in `ui/vendor/`.
 - [macmon](https://github.com/vladkens/macmon) (MIT) for sudoless temperature and power readings.
 - Fonts: IBM Plex Mono and Share Tech Mono from Google Fonts.
 
