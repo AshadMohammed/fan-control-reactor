@@ -1,0 +1,13 @@
+# build artifacts
+smc/smcfan
+app/build/
+__pycache__/
+*.pyc
+.DS_Store
+
+# kept locally, not part of the published project
+briefs/
+ui-v1/
+scram-demo/
+app/Reactor.iconset/
+.vercel/

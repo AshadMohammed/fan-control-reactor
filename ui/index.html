@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#77766f">
+  <title>Reactor · Live control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="statusbar">
+      <a class="brand" href="/" aria-label="Reactor home">REACTOR</a>
+      <p id="statusText" class="status-copy">Connecting to reactor…</p>
+      <button id="ackBtn" class="button ack" type="button" hidden title="Acknowledge active alarms">Acknowledge</button>
+      <span class="sim-lamp"><i id="simDot"></i><span id="simLabel">LIVE</span></span>
+      <label class="sound-control" title="Choose whether alarms make sound">
+        <span>Sound</span>
+        <select id="soundMode" aria-label="Alarm sound">
+          <option value="0">Off</option><option value="1">Alarms</option>
+        </select>
+      </label>
+    </header>
+
+    <div class="layout">
+      <section class="panel chart-panel" aria-labelledby="chartTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head">
+          <div><span class="eyebrow">01 / TEMPERATURE &amp; FAN RESPONSE</span><h1 id="chartTitle">Strip chart</h1></div>
+          <div class="window-toggle" role="group" aria-label="Chart time window">
+            <button type="button" data-window="120" aria-pressed="false" title="Show the last two minutes">2 min</button>
+            <button type="button" data-window="600" aria-pressed="true" title="Show the last ten minutes">10 min</button>
+          </div>
+        </div>
+        <div class="chart-bezel">
+          <canvas id="chart" aria-label="Temperature, fan speed and chip power history. Move or drag over the chart to inspect a moment." tabindex="0"></canvas>
+          <div id="hoverCard" class="hover-card" hidden></div>
+        </div>
+        <div class="chart-footer">
+          <div class="legend" aria-label="Chart legend">
+            <span><i class="key temp-key"></i>Chip °C</span>
+            <span><i class="key fan-a-key"></i>Fan A rpm</span>
+            <span><i class="key fan-b-key"></i>Fan B rpm</span>
+            <span><i class="key power-key"></i>Chip W <b id="powerScale">0–40 W</b></span>
+          </div>
+          <small>10-minute paper · newest at right</small><span class="tape-note" aria-label="Temperature warning">KEEP BELOW 92°</span>
+        </div>
+      </section>
+
+      <section class="panel readout-panel" aria-labelledby="readoutTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head"><div><span class="eyebrow">02 / LIVE TELEMETRY</span><h2 id="readoutTitle">Readouts</h2></div><span class="live-tag">LIVE</span></div>
+        <div class="chip-readout"><span>CHIP TEMPERATURE</span><strong id="tempValue">--</strong><em>°C</em><small>Under 80 °C is normal</small></div>
+        <div class="metrics">
+          <div class="metric"><span>CPU</span><strong id="cpuValue">--</strong><small>°C · processor</small></div>
+          <div class="metric"><span>GPU</span><strong id="gpuValue">--</strong><small>°C · graphics</small></div>
+          <div class="metric"><span>CPU LOAD</span><strong id="loadValue">--</strong><small>Share of the whole chip</small></div>
+          <div class="metric"><span>CHIP DRAW</span><strong id="powerValue">--</strong><small>Power the chip is drawing · W</small></div>
+          <div class="metric fan-metric"><span>FAN A</span><strong id="fanAValue">--</strong><small id="fanATarget">rpm · target 3,400</small></div>
+          <div class="metric fan-metric"><span>FAN B</span><strong id="fanBValue">--</strong><small id="fanBTarget">rpm · target 3,400</small></div>
+        </div>
+      </section>
+
+      <section class="panel control-panel" aria-labelledby="controlTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head"><div><span class="eyebrow">03 / FAN CONTROL</span><h2 id="controlTitle">Choose a mode</h2></div></div>
+        <div class="mode-buttons" role="group" aria-label="Fan control mode">
+          <button type="button" data-mode="auto" aria-pressed="false" title="Apple runs the fans">Auto</button>
+          <button type="button" data-mode="curve" aria-pressed="false" title="Fans rise between your two temperatures">Curve</button>
+          <button type="button" data-mode="manual" aria-pressed="false" title="Set one fixed fan speed">Manual</button>
+        </div>
+        <p id="modeCaption" class="caption">Apple runs the fans.</p>
+        <div id="curveControls" class="active-controls">
+          <div class="step-grid">
+            <div class="step-control"><span>FANS START</span><div class="stepper"><button data-step="start" data-delta="-1" title="Lower fan start temperature">−</button><output id="startOutput">50 °C</output><button data-step="start" data-delta="1" title="Raise fan start temperature">+</button></div></div>
+            <div class="step-control"><span>FULL SPEED</span><div class="stepper"><button data-step="full" data-delta="-1" title="Lower full speed temperature">−</button><output id="fullOutput">80 °C</output><button data-step="full" data-delta="1" title="Raise full speed temperature">+</button></div></div>
+          </div>
+          <div class="preview-track" aria-label="Current chip temperature on the fan curve"><i id="tempMarker"></i><span id="previewLabel">Current chip temperature</span></div>
+          <div class="range-labels"><span>40 °C</span><span>95 °C</span></div>
+        </div>
+        <div id="manualControls" class="active-controls" hidden>
+          <label class="slider-label" for="manualSlider"><span>FIXED SPEED</span><output id="manualOutput">60%</output></label>
+          <input id="manualSlider" type="range" min="0" max="100" step="1" value="60" title="Set a fixed speed for both fans">
+          <div class="range-labels"><span>0%</span><span>100%</span></div>
+        </div>
+      </section>
+
+      <section class="panel apps-panel" aria-labelledby="appsTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head"><div><span class="eyebrow">04 / PROCESS LOAD</span><h2 id="appsTitle">What’s heating the chip</h2></div></div>
+        <p class="caption">Apps using the most processor right now.</p>
+        <ol id="processList" class="process-list" aria-live="polite"></ol>
+        <p id="topAppNote" class="top-app-note" hidden></p>
+      </section>
+
+      <section id="scramPanel" class="panel scram-panel" aria-labelledby="scramTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head"><div><h2 id="scramTitle">SCRAM</h2></div><span class="hazard-mark">!</span></div>
+        <div id="scram3d" class="scram-3d" hidden><canvas tabindex="0" aria-label="SCRAM switch under a glass cover. Space lifts the cover, Space again flips the switch, Space again closes it."></canvas></div>
+        <button id="scramCover" type="button" class="cover" aria-expanded="false" title="Lift the safety cover first">LIFT COVER</button>
+        <button id="scramButton" type="button" class="scram-button" title="Press after lifting the cover" aria-disabled="true">SCRAM</button>
+        <p id="scramNote" class="scram-note" aria-live="polite">Guard closed · no action</p>
+      </section>
+
+      <section class="panel events-panel" aria-labelledby="eventsTitle">
+        <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+        <div class="panel-head"><div><span class="eyebrow">06 / RECENT ACTIVITY</span><h2 id="eventsTitle">Event log</h2></div><small>Newest first</small></div>
+        <ol id="eventList" class="event-list" aria-live="polite"></ol>
+      </section>
+    </div>
+    <footer class="footerline"><span>REACTOR CONTROL · M1 PRO · TWO FANS</span><span id="lastUpdated">Waiting for first sample</span></footer>
+  </main>
+  <script src="app.js" defer></script>
+  <script type="module" src="scram3d.js"></script>
+</body>
+</html>
