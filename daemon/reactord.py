@@ -16,6 +16,7 @@ crash, a normal return — it puts the fans back under macOS control with
 import argparse
 import atexit
 import json
+import math
 import os
 import signal
 import subprocess
@@ -924,6 +925,8 @@ class Reactor(object):
             full = float(full_c)
         except (TypeError, ValueError):
             return False, "start_c and full_c must be numbers"
+        if not (math.isfinite(start) and math.isfinite(full)):
+            return False, "start_c and full_c must be numbers"
         if start < 40 or start > 85:
             return False, "start_c must be between 40 and 85"
         if full < start + 5 or full > 95:
@@ -940,6 +943,8 @@ class Reactor(object):
         try:
             value = float(pct)
         except (TypeError, ValueError):
+            return False, "pct must be a number"
+        if not math.isfinite(value):
             return False, "pct must be a number"
         if value < 0 or value > 100:
             return False, "pct must be between 0 and 100"
